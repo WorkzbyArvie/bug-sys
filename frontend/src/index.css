@@ -1,0 +1,31 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import "tailwindcss";
+@import "./styles/globals.css";
+
+/* Tailwind v4 Configuration */
+@source "../index.html";
+@source "./**/*.{js,ts,jsx,tsx}";
+
+@layer base {
+  /* This locks the background and removes the messy outer scrollbar */
+  html, body, #root {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden; 
+    background-color: #f8fafc;
+    font-family: 'Inter', sans-serif;
+  }
+}
+
+@layer utilities {
+  /* Hides scrollbars but allows scrolling via mouse wheel/touch */
+  .custom-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .custom-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}

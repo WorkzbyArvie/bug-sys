@@ -1,0 +1,218 @@
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["multiSchema"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  schemas  = ["public", "auth"]
+}
+
+// Prisma schema mapped to existing Supabase DB (public schema)
+
+model Branch {
+  id         Int      @id @default(autoincrement())
+  name       String
+  location   String
+  pawnshopId String?  @map("pawnshop_id") @db.Uuid
+  tickets    Ticket[]
+  staff      Staff[]
+  systemSettings SystemSettings?
+  pawnshop   Pawnshop? @relation(fields: [pawnshopId], references: [id])
+  @@map("branch")
+  @@schema("public")
+}
+
+model Category {
+  id        Int       @id @default(autoincrement())
+  name      String    @unique
+  inventory Inventory[]
+  @@map("category")
+  @@schema("public")
+}
+
+model Customer {
+  id           String   @id
+  fullName     String   @map("full_name")
+  contactNumber String  @map("contact_number")
+  address      String
+  loyaltyTier  String   @map("loyaltytier") @default("Standard")
+  createdAt    DateTime @map("created_at") @default(now())
+  pawnshopId   String?  @map("pawnshop_id") @db.Uuid
+  tickets      Ticket[]
+  pawnshop     Pawnshop? @relation(fields: [pawnshopId], references: [id])
+  @@map("customer")
+  @@schema("public")
+}
+
+model Inventory {
+  id            Int      @id @default(autoincrement())
+  categoryId    Int?     @map("categoryid")
+  ticketId      Int?     @map("ticketid")
+  isForAuction  Boolean  @map("isforauction") @default(false)
+  auctionPrice  Float?   @map("auctionprice")
+  category      Category? @relation(fields: [categoryId], references: [id])
+  ticket        Ticket?   @relation(fields: [ticketId], references: [id])
+  @@map("inventory")
+  @@schema("public")
+}
+
+model Loan {
+  id             Int      @id @default(autoincrement())
+  ticketId       Int?     @map("ticketid")
+  principalAmount Float   @map("principalamount")
+  interestAmount  Float   @map("interestamount")
+  customerName    String?  @map("customername")
+  category        String?
+  weight          Decimal?
+  riskScore       Decimal? @map("riskscore")
+  status          String?  @default("active")
+  pawnshopId      String?  @map("pawnshop_id") @db.Uuid
+  createdAt       DateTime @map("createdat") @default(now())
+  ticket          Ticket?  @relation(fields: [ticketId], references: [id])
+  pawnshop        Pawnshop? @relation(fields: [pawnshopId], references: [id])
+  @@map("loan")
+  @@schema("public")
+}
+
+model Pawnshop {
+  id                 String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name               String     @unique
+  registrationNumber String?    @map("registration_number")
+  taxId              String?    @map("tax_id") @unique
+  address            String?
+  contactEmail       String?    @map("contact_email")
+  contactPhone       String?    @map("contact_phone")
+  logoUrl            String?    @map("logo_url")
+  status             String?    @default("ACTIVE")
+  ownerEmail         String?    @map("owner_email")
+  createdAt          DateTime   @map("created_at") @default(now())
+  isActive           Boolean?   @map("is_active") @default(true)
+  settings           Json?      @default("{}") @db.Json
+  adminInvites       AdminInvite[]
+  profiles           Profile[]
+  customers          Customer[]
+  tickets            Ticket[]
+  loans              Loan[]
+  branches           Branch[]
+  @@map("pawnshops")
+  @@schema("public")
+}
+
+model Staff {
+  id            String   @id
+  fullName      String   @map("full_name")
+  password      String
+  role          String   @default("STAFF")
+  contactNumber String?  @map("contact_number")
+  branchId      Int?     @map("branchid")
+  branch        Branch?  @relation(fields: [branchId], references: [id])
+  @@map("staff")
+  @@schema("public")
+}
+
+model SystemSettings {
+  id              Int    @id @default(autoincrement())
+  branchId        Int    @unique @map("branchid")
+  defaultInterest Float  @map("defaultinterest") @default(3.0)
+  enableAiPricing Boolean @map("enableaipricing") @default(true)
+  showVaultWidget Boolean @map("showvaultwidget") @default(true)
+  showRiskWidget  Boolean @map("showriskwidget") @default(true)
+  branch          Branch @relation(fields: [branchId], references: [id])
+  @@map("systemsettings")
+  @@schema("public")
+}
+
+model Ticket {
+  id           Int      @id @default(autoincrement())
+  ticketNumber String   @map("ticket_number") @unique
+  customerId   String   @map("customer_id")
+  branchId     Int?     @map("branch_id")
+  category     String
+  description  String
+  weight       Float?
+  storageLocation String @map("storage_location") @default("Vault A")
+  loanAmount   Float    @map("loan_amount")
+  interestRate Float    @map("interest_rate") @default(3.0)
+  status       String   @default("ACTIVE")
+  isHighRisk   Boolean  @map("ishighrisk") @default(false)
+  pawnDate     DateTime @map("pawn_date") @default(now())
+  expiryDate   DateTime @map("expiry_date")
+  forfeitureDate DateTime? @map("forfeituredate")
+  pawnshopId   String?  @map("pawnshop_id") @db.Uuid
+  updatedAt    DateTime @map("updatedat") @default(now())
+  customer     Customer @relation(fields: [customerId], references: [id])
+  branch       Branch?  @relation(fields: [branchId], references: [id])
+  pawnshop     Pawnshop? @relation(fields: [pawnshopId], references: [id])
+  loans        Loan[]
+  inventory    Inventory[]
+  transactions Transaction[]
+  @@map("ticket")
+  @@schema("public")
+}
+
+model Transaction {
+  id        String   @id
+  ticketId  Int?     @map("ticketid")
+  type      String
+  amount    Float
+  date      DateTime @default(now())
+  staffName String   @map("staffname")
+  ticket    Ticket?  @relation(fields: [ticketId], references: [id])
+  @@map("transaction")
+  @@schema("public")
+}
+
+model AdminInvite {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email      String
+  pawnshopId String   @map("pawnshop_id") @db.Uuid
+  role       String   @default("BRANCH_ADMIN")
+  createdAt  DateTime @map("created_at") @default(now())
+  pawnshop   Pawnshop @relation(fields: [pawnshopId], references: [id])
+  @@map("admin_invites")
+  @@schema("public")
+}
+
+model Profile {
+  id         String   @id @db.Uuid
+  role       String   @default("STAFF")
+  pawnshopId String?  @map("pawnshop_id") @db.Uuid
+  createdAt  DateTime @map("created_at") @default(now())
+  updatedAt  DateTime @map("updated_at") @default(now())
+  email      String?
+  fullName   String?  @map("full_name")
+  branchId   String?  @map("branch_id")
+  pawnshop   Pawnshop? @relation(fields: [pawnshopId], references: [id])
+  @@map("profiles")
+  @@schema("public")
+}
+
+model ActivityLog {
+  id        Int      @id @default(autoincrement())
+  staffId   String   @map("staffid")
+  action    String
+  details   String
+  timestamp DateTime @default(now())
+  @@map("activitylog")
+  @@schema("public")
+}
+
+enum Role {
+  SUPER_ADMIN
+  ADMIN
+  OWNER
+  MANAGER
+  STAFF
+  @@schema("public")
+}
+
+enum TicketStatus {
+  ACTIVE
+  REDEEMED
+  OVERDUE
+  FORFEITED
+  SOLD
+  @@schema("public")
+}
