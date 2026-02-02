@@ -27,7 +27,8 @@ export function PlatformControl({ setActiveTab, userRole }: PlatformControlProps
     show: false, message: '', type: 'success'
   });
 
-  const isSuperAdmin = userRole === 'SUPER' || userRole === 'SUPER_ADMIN';
+  const isSuperAdmin = userRole === 'SUPER' || userRole === 'SUPER_ADMIN' || userRole === 'Super Admin';
+  console.log('User Role:', userRole, 'Is Super Admin:', isSuperAdmin);
 
   useEffect(() => {
     if (isSuperAdmin) fetchPawnshops();

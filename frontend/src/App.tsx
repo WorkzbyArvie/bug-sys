@@ -40,7 +40,7 @@ import { StaffMatrix } from './components/StaffMatrix';
 import { FinanceTreasury } from './components/FinanceTreasury';
 
 // Standardized Roles [cite: 2026-01-22]
-export type Role = 'Super Admin' | 'Branch Admin' | 'Manager' | 'Staff' | 'Shop Admin' | 'Owner';
+export type Role = 'SUPER_ADMIN' | 'Branch Admin' | 'Manager' | 'Staff' | 'Shop Admin' | 'Owner';
 
 
 interface ToastContextType {

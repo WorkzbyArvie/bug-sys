@@ -18,7 +18,7 @@ export function SuperAdminDashboard({
 }: SuperAdminDashboardProps) {
 
   // Role constant aligned with your profiles table schema [cite: 2026-01-22]
-  const SUPER_ADMIN_ROLE = "Super Admin";
+  const SUPER_ADMIN_ROLE = 'SUPER_ADMIN';
 
   return (
     <div className="animate-in fade-in duration-500">
